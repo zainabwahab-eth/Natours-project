@@ -1,0 +1,19 @@
+extends base
+
+block content 
+     main.main
+        .user-view
+            nav.user-view__menu
+                include _sidenav
+
+            .user-view__content
+                .user-view__form-container
+                    h2.heading-secondary.ma-bt-md= `Your Reviews(${reviews.length})`
+                    each review in reviews
+                        .card.my-review-card 
+                            h4.heading-small.ma-bt-sm= `For ${review.tour.name} Tour`
+                            .reviews__rating.ma-bt-sm
+                                each star in [1, 2, 3, 4, 5]
+                                    svg.reviews__star(class=`reviews__star--${review.rating >= star ? 'active' : 'inactive'}`)
+                                        use(xlink:href='/img/icons.svg#icon-star')
+                            h4.heading-small.ma-bt-sm= review.review
