@@ -4,7 +4,7 @@ import { showAlert } from './alert';
 export const bookTour = async (tourId) => {
   try {
     const session = await axios({
-      url: 'http://localhost:3000/api/v1/bookings/checkout-session',
+      url: '/api/v1/bookings/checkout-session',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export const bookTour = async (tourId) => {
 const verifyPayment = async (reference, tourId, userId) => {
   try {
     await axios({
-      url: `http://localhost:3000/api/v1/bookings/verify-payment/${reference}`,
+      url: `/api/v1/bookings/verify-payment/${reference}`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

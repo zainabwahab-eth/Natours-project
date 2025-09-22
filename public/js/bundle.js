@@ -12722,7 +12722,7 @@ var signup = exports.signup = /*#__PURE__*/function () {
           _context.n = 1;
           return (0, _axios.default)({
             method: 'POST',
-            url: 'http://localhost:3000/api/v1/users/signup',
+            url: '/api/v1/users/signup',
             data: {
               name: name,
               email: email,
@@ -12764,7 +12764,7 @@ var login = exports.login = /*#__PURE__*/function () {
           _context2.n = 2;
           return (0, _axios.default)({
             method: 'POST',
-            url: 'http://localhost:3000/api/v1/users/login',
+            url: '/api/v1/users/login',
             data: {
               email: email,
               password: password
@@ -12803,7 +12803,7 @@ var logout = exports.logout = /*#__PURE__*/function () {
           _context3.n = 1;
           return (0, _axios.default)({
             method: 'GET',
-            url: 'http://localhost:3000/api/v1/users/logout'
+            url: '/api/v1/users/logout'
           });
         case 1:
           res = _context3.v;
@@ -12845,7 +12845,7 @@ var updateSettings = exports.updateSettings = /*#__PURE__*/function () {
       while (1) switch (_context.p = _context.n) {
         case 0:
           _context.p = 0;
-          url = type === 'password' ? 'http://localhost:3000/api/v1/users/updateMyPassword' : 'http://localhost:3000/api/v1/users/updateMe';
+          url = type === 'password' ? '/api/v1/users/updateMyPassword' : '/api/v1/users/updateMe';
           _context.n = 1;
           return (0, _axios.default)({
             method: 'PATCH',
@@ -12895,7 +12895,7 @@ var bookTour = exports.bookTour = /*#__PURE__*/function () {
           _context.p = 0;
           _context.n = 1;
           return (0, _axios.default)({
-            url: 'http://localhost:3000/api/v1/bookings/checkout-session',
+            url: '/api/v1/bookings/checkout-session',
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -12953,7 +12953,7 @@ var verifyPayment = /*#__PURE__*/function () {
           _context2.p = 0;
           _context2.n = 1;
           return (0, _axios.default)({
-            url: "http://localhost:3000/api/v1/bookings/verify-payment/".concat(reference),
+            url: "/api/v1/bookings/verify-payment/".concat(reference),
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -13007,7 +13007,7 @@ var submitReview = exports.submitReview = /*#__PURE__*/function () {
           _context.n = 1;
           return (0, _axios.default)({
             method: 'POST',
-            url: 'http://localhost:3000/api/v1/reviews',
+            url: '/api/v1/reviews',
             data: {
               rating: rating,
               review: review,
