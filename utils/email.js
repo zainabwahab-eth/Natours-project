@@ -12,17 +12,12 @@ module.exports = class Email {
 
   newTransport() {
     if (process.env.NODE_ENV === 'production') {
-      //sendgrid
+      //gmail
       return nodemailer.createTransport({
-        // service: 'Brevo',
-        // auth: {
-
-        // }
-        host: process.env.RESEND_HOST,
-        port: process.env.RESEND_PORT,
+        service: 'gmail',
         auth: {
-          user: process.env.RESEND_USERNAME,
-          pass: process.env.RESEND_PASSWORD,
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_PASS,
         },
       });
     }

@@ -46,13 +46,14 @@ exports.signUp = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
     role: req.body.role,
   });
-  
+
   const url = `${req.protocol}://${req.get('host')}/me`;
   console.log(url);
   try {
     await new Email(newUser, url).sendWelcome();
+    console.log('Welcome email sent successfullly');
   } catch (err) {
-    console.log(err);
+    console.log('error from welcome email', err);
   }
 
   getAndSendToken(newUser, 201, res);
@@ -152,6 +153,7 @@ exports.isLoggedIn = async (req, res, next) => {
 
       //There is a logged in user
       //Give our pug template assess to user
+      req.user = currentUser;
       res.locals.user = currentUser;
       return next();
     } catch (err) {

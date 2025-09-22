@@ -30,25 +30,27 @@ exports.getTour = catchAsync(async (req, res, next) => {
   if (!tour) {
     return next(new AppError('There is no tour with this name', 404));
   }
+  let reviewed = false;
+  let booked = false;
 
   //Check if the booked
-  let booked = false;
-  const booking = await Booking.findOne({
-    tour: tour._id,
-    user: req.user.id,
-  });
-  if (booking) {
-    booked = true;
-  }
+  if (req.user) {
+    const booking = await Booking.findOne({
+      tour: tour._id,
+      user: req.user.id,
+    });
+    if (booking) {
+      booked = true;
+    }
 
-  //Check if reviewed
-  let reviewed = false;
-  const review = await Review.findOne({
-    tour: tour._id,
-    user: req.user.id,
-  });
-  if (review) {
-    reviewed = true;
+    //Check if reviewed
+    const review = await Review.findOne({
+      tour: tour._id,
+      user: req.user.id,
+    });
+    if (review) {
+      reviewed = true;
+    }
   }
 
   //2. Build Templates
