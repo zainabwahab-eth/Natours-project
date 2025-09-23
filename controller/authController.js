@@ -12,7 +12,7 @@ const signToken = (id) => {
   });
 };
 
-const getAndSendToken = (user, statusCode, res) => {
+const getAndSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
 
   const cookieOptions = {
@@ -22,9 +22,8 @@ const getAndSendToken = (user, statusCode, res) => {
     ),
     // secure: true, //only send cookie over secure https
     httpOnly: true, //Coookie cannot the accessed or modified by the browser
+    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
   };
-
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
 
@@ -48,7 +47,6 @@ exports.signUp = catchAsync(async (req, res, next) => {
   });
 
   const url = `${req.protocol}://${req.get('host')}/me`;
-  console.log(url);
   try {
     await new Email(newUser, url).sendWelcome();
     console.log('Welcome email sent successfullly');
@@ -56,7 +54,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
     console.log('error from welcome email', err);
   }
 
-  getAndSendToken(newUser, 201, res);
+  getAndSendToken(newUser, 201, req, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -74,7 +72,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Password or email is incorrect', 401));
   }
 
-  getAndSendToken(user, 201, res);
+  getAndSendToken(user, 201, req, res);
 });
 
 exports.logout = (req, res) => {
@@ -240,7 +238,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   //3. Update changePasswordAt prop for the user
 
   //4. Log the user in. Send the JWT token
-  getAndSendToken(user, 201, res);
+  getAndSendToken(user, 201, req, res);
 });
 
 exports.updatePassword = async (req, res, next) => {
@@ -261,5 +259,5 @@ exports.updatePassword = async (req, res, next) => {
   await user.save();
 
   //4. Log user in send JWT
-  getAndSendToken(user, 201, res);
+  getAndSendToken(user, 201, req, res);
 };

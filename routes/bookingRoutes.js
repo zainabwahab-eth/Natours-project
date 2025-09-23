@@ -8,7 +8,9 @@ router.use(authController.protect);
 
 router.post('/checkout-session', bookingController.getCheckoutSession);
 
-router.post('/verify-payment/:reference', bookingController.verifyPayment);
+router.post('/webhook/paystack', bookingController.handlePaystackWebhook);
+
+// router.post('/verify-payment/:reference', bookingController.verifyPayment);
 
 router.use(authController.restrictTo('admin', 'lead-guide'));
 

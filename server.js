@@ -34,4 +34,11 @@ process.on('unhandledRejection', (err) => {
   });
 });
 
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM. Performing graceful shutdown...');
+  server.close(() => {
+    console.log('Server Killed');
+  });
+});
+
 // console.log(x);

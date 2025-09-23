@@ -59,38 +59,79 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.verifyPayment = catchAsync(async (req, res, next) => {
-  const { reference } = req.params;
-  const { tourId, userId } = req.body;
-
-  try {
-    const response = await paystack.transaction.verify({
-      reference,
-    });
-    console.log(response);
-
-    if (response.status && response.data.status === 'success') {
-      // const { metadata } = response.data;
-      await Booking.create({
-        tour: tourId,
-        user: userId,
-        price: response.data.amount / 100,
-        reference,
-        paid: true,
-      });
-
-      res.status(200).json({
-        status: 'success',
-        message: 'Payment verified successfully',
-        data: response.data,
-      });
-    } else {
-      return next(new AppError('Payment verification failed', 400));
-    }
-  } catch (err) {
-    return next(new AppError(err.message, 500));
+exports.handlePaystackWebhook = catchAsync(async (req, res, next) => {
+  // 1. Verify the webhook signature
+  const secret = process.env.PAYSTACK_SECRET_KEY; // Store in .env
+  const hash = crypto
+    .createHmac('sha512', secret)
+    .update(JSON.stringify(req.body))
+    .digest('hex');
+  if (hash !== req.headers['x-paystack-signature']) {
+    return next(new AppError('Invalid Paystack webhook signature', 401));
   }
+
+  // 2. Process the event
+  const { event, data } = req.body;
+  console.log('Webhook event received:', event, data);
+
+  if (event === 'charge.success') {
+    const { reference, amount, metadata } = data;
+
+    // Validate metadata
+    const { tourId, userId } = metadata;
+    if (!tourId || !userId) {
+      console.log('Missing tourId or userId in metadata:', metadata);
+      return res.status(200).json({ status: 'success' }); // Return 200 to avoid retries
+    }
+
+    // Create booking
+    await Booking.create({
+      tour: tourId,
+      user: userId,
+      price: amount / 100, // Convert kobo to NGN
+      reference,
+      paid: true,
+    });
+
+    console.log(`Booking created for reference: ${reference}`);
+  }
+
+  // 3. Acknowledge the webhook
+  res.status(200).json({ status: 'success' });
 });
+
+// exports.verifyPayment = catchAsync(async (req, res, next) => {
+//   const { reference } = req.params;
+//   const { tourId, userId } = req.body;
+
+//   try {
+//     const response = await paystack.transaction.verify({
+//       reference,
+//     });
+//     console.log(response);
+
+//     if (response.status && response.data.status === 'success') {
+//       // const { metadata } = response.data;
+//       await Booking.create({
+//         tour: tourId,
+//         user: userId,
+//         price: response.data.amount / 100,
+//         reference,
+//         paid: true,
+//       });
+
+//       res.status(200).json({
+//         status: 'success',
+//         message: 'Payment verified successfully',
+//         data: response.data,
+//       });
+//     } else {
+//       return next(new AppError('Payment verification failed', 400));
+//     }
+//   } catch (err) {
+//     return next(new AppError(err.message, 500));
+//   }
+// });
 
 exports.getAllBookings = factory.getAll(Booking);
 exports.getOneBooking = factory.getOne(Booking, { path: 'user' });

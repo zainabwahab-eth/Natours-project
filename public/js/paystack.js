@@ -45,24 +45,24 @@ export const bookTour = async (tourId) => {
   }
 };
 
-const verifyPayment = async (reference, tourId, userId) => {
-  try {
-    await axios({
-      url: `/api/v1/bookings/verify-payment/${reference}`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      data: {
-        tourId,
-        userId,
-      },
-    });
-    // Handle successful verification
-    window.location.href = '/'; // Redirect to user's bookings
-  } catch (err) {
-    console.log(err);
-    console.log(err.message);
-    showAlert('error', 'Payment verification failed');
-  }
-};
+// const verifyPayment = async (reference, tourId, userId) => {
+//   try {
+//     await axios({
+//       url: `/api/v1/bookings/verify-payment/${reference}`,
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       data: {
+//         tourId,
+//         userId,
+//       },
+//     });
+//     // Handle successful verification
+//     window.location.href = '/'; // Redirect to user's bookings
+//   } catch (err) {
+//     console.log(err);
+//     console.log(err.message);
+//     showAlert('error', 'Payment verification failed');
+//   }
+// };
