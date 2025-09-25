@@ -51,7 +51,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
     await new Email(newUser, url).sendWelcome();
     console.log('Welcome email sent successfullly');
   } catch (err) {
-    console.log('error from welcome email', err);
+    console.error('error from welcome email', err);
   }
 
   getAndSendToken(newUser, 201, req, res);

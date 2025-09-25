@@ -49,7 +49,6 @@ exports.getOne = (Model, popOptions) =>
   catchAsync(async (req, res, next) => {
     let query = Model.findById(req.params.id);
     if (popOptions) query.populate(popOptions);
-    console.log(popOptions);
     const doc = await query;
     if (!doc) {
       return next(new AppError('No document found with that ID', 404));
@@ -75,8 +74,6 @@ exports.getAll = (Model) =>
       .paginate();
 
     // Execute query
-    console.log(req.query);
-    // const doc = await features.query.explain();
     const doc = await features.query;
 
     //Send Response

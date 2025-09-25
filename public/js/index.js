@@ -50,7 +50,6 @@ if (reviewForm) {
   const reviewText = document.getElementById('reviewText');
   const stars = document.querySelectorAll('.star-rating .star');
   let currentRating = 0;
-  console.log(currentRating);
 
   stars.forEach((star, idx) => {
     star.addEventListener('mouseover', () => {
@@ -79,7 +78,6 @@ if (reviewForm) {
     const rating = ratingInput.value;
     const review = reviewText.value.trim();
     const tour = reviewForm.dataset.tourId;
-    console.log({ rating, review, tour });
     await submitReview(rating, review, tour);
     highlightStars(0);
     ratingInput.value = '';
@@ -97,7 +95,6 @@ if (userDataForm) {
     form.append('name', document.getElementById('name').value);
     form.append('email', document.getElementById('email').value);
     form.append('photo', document.getElementById('photo').files[0]);
-    console.log(form);
 
     updateSettings(form, 'data');
   });
@@ -130,7 +127,6 @@ if (bookBtn) {
   bookBtn.addEventListener('click', (e) => {
     e.target.textContent = 'Processing...';
     const { tourId } = e.target.dataset;
-    console.log(tourId);
     bookTour(tourId);
   });
 }

@@ -14,8 +14,6 @@ export const bookTour = async (tourId) => {
       },
     });
 
-    console.log('session.....', session);
-
     const PAYSTACK_PUBLIC_KEY =
       'pk_test_e3eb58bd9657b232940c549f93546960b8a6df35';
 
@@ -27,21 +25,23 @@ export const bookTour = async (tourId) => {
       email: session.data.email,
       amount: session.data.amount,
       callback: function (response) {
-        console.log('paystack res', response);
         if (response.status === 'success') {
-          showAlert('success', 'Payment successful!');
-          // window.location.reload();
-          window.location.href = '/';
+          showAlert(
+            'success',
+            "Your booking was successful! Please check your email for a confirmation. If your booking doesn't show up here immediatly, please come back later.",
+            30
+          );
+          window.location.href = '/my-tours';
         }
       },
       onClose: function () {
         showAlert('error', 'Payment cancelled');
+        window.location.reload();
       },
     });
     handler.openIframe();
   } catch (err) {
-    console.log(err);
-    console.log(err.message);
+    console.error(err.message);
     showAlert('error', 'An error occured');
   }
 };

@@ -12,6 +12,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   const booking = await Booking.findOne({
     tour: req.body.tourId,
     user: req.user.id,
+    status: 'paid',
   });
   if (booking) {
     return res.status(403).json({
@@ -30,17 +31,15 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     amount: tour.price * 100, // Paystack uses kobo (multiply by 100)
     currency: 'NGN',
     email: req.user.email,
-    callback_url: `${req.protocol}://${req.get('host')}/`,
+    callback_url: `${req.protocol}://${req.get('host')}/my-tours`,
     reference: reference,
     channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
   };
 
   try {
     const response = await paystack.transaction.initialize(payload);
-    console.log('response...', response);
 
     if (response.status) {
-      console.log('first reference', response.data.reference);
       const booking = await Booking.create({
         tour: tour._id,
         user: req.user._id,
@@ -67,7 +66,6 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
 });
 
 exports.handlePaystackWebhook = catchAsync(async (req, res, next) => {
-  console.log('webhook says hi');
   // 1. Verify the webhook signature
   const secret = process.env.PAYSTACK_SECRET_KEY;
 
@@ -75,8 +73,6 @@ exports.handlePaystackWebhook = catchAsync(async (req, res, next) => {
     .createHmac('sha512', secret)
     .update(JSON.stringify(req.body))
     .digest('hex');
-
-  console.log('crypto-hash', hash);
 
   if (hash !== req.headers['x-paystack-signature']) {
     return next(new AppError('Invalid Paystack webhook signature', 401));
@@ -88,7 +84,6 @@ exports.handlePaystackWebhook = catchAsync(async (req, res, next) => {
 
   if (event === 'charge.success') {
     const { reference, amount } = data;
-    console.log('reference', reference);
     try {
       const booking = await Booking.findOneAndUpdate(
         { reference, status: 'pending' },
@@ -97,7 +92,7 @@ exports.handlePaystackWebhook = catchAsync(async (req, res, next) => {
       );
 
       if (!booking) {
-        console.log('No pending booking found for reference:', reference);
+        console.warn('No pending booking found for reference:', reference);
         return res.status(200).json({ status: 'success' });
       }
       console.log(
@@ -105,7 +100,7 @@ exports.handlePaystackWebhook = catchAsync(async (req, res, next) => {
         booking
       );
     } catch (err) {
-      console.log('Error updating booking:', err.message);
+      console.error('Error updating booking:', err.message);
       return res.status(200).json({ status: 'success' });
     }
   } else if (event === 'charge.failed') {

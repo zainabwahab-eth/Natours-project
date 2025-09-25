@@ -40,7 +40,6 @@ exports.getTour = catchAsync(async (req, res, next) => {
       user: req.user.id,
       status: 'paid',
     });
-    console.log('booking', booking);
     if (booking) {
       booked = true;
     }
@@ -54,7 +53,6 @@ exports.getTour = catchAsync(async (req, res, next) => {
       reviewed = true;
     }
   }
-  console.log(booked);
 
   //2. Build Templates
 
@@ -91,6 +89,7 @@ exports.getBookingPage = async (req, res, next) => {
   const user = await User.findById(req.user.id).populate({
     path: 'bookings',
     match: { status: 'paid' },
+    options: { sort: { createdAt: -1 } },
   });
 
   const tours = user.bookings.map((el) => el.tour).filter(Boolean);
@@ -107,7 +106,6 @@ exports.getReviewPage = async (req, res, next) => {
     path: 'tour',
     select: 'name',
   });
-  console.log(reviews);
 
   res.status(200).render('reviews', {
     title: 'My Reviews',

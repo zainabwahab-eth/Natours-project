@@ -29,6 +29,10 @@ block content
                     svg.heading-box__icon
                         use(xlink:href='/img/icons.svg#icon-map-pin')
                     span.heading-box__text= tour.startLocation.description
+                .heading-box__detail
+                    svg.heading-box__icon
+                        use(xlink:href='/img/icons.svg#icon-user')
+                    span.heading-box__text= `$${tour.price} per person`
 
 
     section.section-description

@@ -37,7 +37,6 @@ export const displayMap = (locations) => {
     }
 
     const [lng, lat] = loc.coordinates;
-    console.log(loc.coordinates);
 
     // Validate lat/lng values
     if (
