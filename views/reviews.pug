@@ -11,7 +11,9 @@ block content
                     h2.heading-secondary.ma-bt-md= `Your Reviews(${reviews.length})`
                     each review in reviews
                         .card.my-review-card 
-                            h4.heading-small.ma-bt-sm= `For ${review.tour.name} Tour`
+                            .card__title
+                                h4.heading-small.ma-bt-sm= `For ${review.tour.name} Tour`
+                                h4.heading-small.ma-bt-sm=`Date Given: ${new Date(review.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
                             .reviews__rating.ma-bt-sm
                                 each star in [1, 2, 3, 4, 5]
                                     svg.reviews__star(class=`reviews__star--${review.rating >= star ? 'active' : 'inactive'}`)

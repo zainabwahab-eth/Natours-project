@@ -23,9 +23,10 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     require: true,
   },
-  paid: {
-    type: Boolean,
-    default: true,
+  status: {
+    type: String,
+    enum: ['pending', 'paid', 'failed'],
+    default: 'pending',
   },
 });
 
@@ -35,7 +36,7 @@ bookingSchema.pre(/^find/, function (next) {
     select: '-guides -description',
   });
 
-  next()
+  next();
 });
 
 const Booking = mongoose.model('Booking', bookingSchema);

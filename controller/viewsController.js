@@ -38,7 +38,9 @@ exports.getTour = catchAsync(async (req, res, next) => {
     const booking = await Booking.findOne({
       tour: tour._id,
       user: req.user.id,
+      status: 'paid',
     });
+    console.log('booking', booking);
     if (booking) {
       booked = true;
     }
@@ -52,6 +54,7 @@ exports.getTour = catchAsync(async (req, res, next) => {
       reviewed = true;
     }
   }
+  console.log(booked);
 
   //2. Build Templates
 
@@ -85,10 +88,12 @@ exports.getReviewForm = catchAsync(async (req, res, next) => {
 });
 
 exports.getBookingPage = async (req, res, next) => {
-  const user = await User.findById(req.user.id).populate({ path: 'bookings' });
+  const user = await User.findById(req.user.id).populate({
+    path: 'bookings',
+    match: { status: 'paid' },
+  });
 
-  const tours = user.bookings.map((el) => el.tour);
-  console.log(tours);
+  const tours = user.bookings.map((el) => el.tour).filter(Boolean);
 
   res.status(200).render('bookings', {
     title: 'My bookings',
@@ -103,8 +108,6 @@ exports.getReviewPage = async (req, res, next) => {
     select: 'name',
   });
   console.log(reviews);
-  // const tours = user.bookings.map((el) => el.tour);
-  // console.log(tours);
 
   res.status(200).render('reviews', {
     title: 'My Reviews',

@@ -1,4 +1,6 @@
 const paystack = require('paystack-api')(process.env.PAYSTACK_SECRET_KEY);
+const crypto = require('crypto');
+const { v4: uuidv4 } = require('uuid');
 const Tour = require('./../models/tourModel');
 const Booking = require('./../models/bookingModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -23,17 +25,13 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   const tour = await Tour.findById(tourId);
 
   //2.) Create Paystack transaction
+  const reference = `NATOURS_${uuidv4()}`;
   const payload = {
     amount: tour.price * 100, // Paystack uses kobo (multiply by 100)
     currency: 'NGN',
     email: req.user.email,
     callback_url: `${req.protocol}://${req.get('host')}/`,
-    metadata: {
-      tourId: tour._id,
-      userId: req.user._id,
-      tourName: tour.name,
-      userName: req.user.name,
-    },
+    reference: reference,
     channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
   };
 
@@ -42,6 +40,15 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
     console.log('response...', response);
 
     if (response.status) {
+      console.log('first reference', response.data.reference);
+      const booking = await Booking.create({
+        tour: tour._id,
+        user: req.user._id,
+        price: tour.price,
+        reference: response.data.reference,
+        status: 'pending',
+      });
+      console.log(`Pending booking created: ${booking._id}`);
       res.status(200).json({
         status: 'success',
         paymentLink: response.data.authorization_url,
@@ -60,78 +67,69 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
 });
 
 exports.handlePaystackWebhook = catchAsync(async (req, res, next) => {
+  console.log('webhook says hi');
   // 1. Verify the webhook signature
-  const secret = process.env.PAYSTACK_SECRET_KEY; // Store in .env
+  const secret = process.env.PAYSTACK_SECRET_KEY;
+
   const hash = crypto
     .createHmac('sha512', secret)
     .update(JSON.stringify(req.body))
     .digest('hex');
+
+  console.log('crypto-hash', hash);
+
   if (hash !== req.headers['x-paystack-signature']) {
     return next(new AppError('Invalid Paystack webhook signature', 401));
   }
 
   // 2. Process the event
   const { event, data } = req.body;
-  console.log('Webhook event received:', event, data);
+  console.log('Webhook event received:', event);
 
   if (event === 'charge.success') {
-    const { reference, amount, metadata } = data;
+    const { reference, amount } = data;
+    console.log('reference', reference);
+    try {
+      const booking = await Booking.findOneAndUpdate(
+        { reference, status: 'pending' },
+        { status: 'paid', price: amount / 100 },
+        { new: true }
+      );
 
-    // Validate metadata
-    const { tourId, userId } = metadata;
-    if (!tourId || !userId) {
-      console.log('Missing tourId or userId in metadata:', metadata);
-      return res.status(200).json({ status: 'success' }); // Return 200 to avoid retries
+      if (!booking) {
+        console.log('No pending booking found for reference:', reference);
+        return res.status(200).json({ status: 'success' });
+      }
+      console.log(
+        `Booking updated to paid for reference: ${reference}`,
+        booking
+      );
+    } catch (err) {
+      console.log('Error updating booking:', err.message);
+      return res.status(200).json({ status: 'success' });
     }
-
-    // Create booking
-    await Booking.create({
-      tour: tourId,
-      user: userId,
-      price: amount / 100, // Convert kobo to NGN
-      reference,
-      paid: true,
-    });
-
-    console.log(`Booking created for reference: ${reference}`);
+  } else if (event === 'charge.failed') {
+    try {
+      // Update booking to failed
+      const booking = await Booking.findOneAndUpdate(
+        { reference, status: 'pending' },
+        { status: 'failed', paid: false },
+        { new: true }
+      );
+      if (booking) {
+        console.log(
+          `Booking updated to failed for reference: ${reference}`,
+          booking
+        );
+      }
+    } catch (err) {
+      console.error('Error updating booking:', err.message);
+    }
   }
 
   // 3. Acknowledge the webhook
   res.status(200).json({ status: 'success' });
 });
-
-// exports.verifyPayment = catchAsync(async (req, res, next) => {
-//   const { reference } = req.params;
-//   const { tourId, userId } = req.body;
-
-//   try {
-//     const response = await paystack.transaction.verify({
-//       reference,
-//     });
-//     console.log(response);
-
-//     if (response.status && response.data.status === 'success') {
-//       // const { metadata } = response.data;
-//       await Booking.create({
-//         tour: tourId,
-//         user: userId,
-//         price: response.data.amount / 100,
-//         reference,
-//         paid: true,
-//       });
-
-//       res.status(200).json({
-//         status: 'success',
-//         message: 'Payment verified successfully',
-//         data: response.data,
-//       });
-//     } else {
-//       return next(new AppError('Payment verification failed', 400));
-//     }
-//   } catch (err) {
-//     return next(new AppError(err.message, 500));
-//   }
-// });
 
 exports.getAllBookings = factory.getAll(Booking);
 exports.getOneBooking = factory.getOne(Booking, { path: 'user' });

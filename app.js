@@ -17,6 +17,7 @@ const userRoute = require('./routes/userRoutes');
 const reviewRoute = require('./routes/reviewRoutes');
 const viewRoute = require('./routes/viewRoutes');
 const bookingRoute = require('./routes/bookingRoutes');
+const bookingController = require('./controller/bookingController');
 
 const app = express();
 
@@ -143,6 +144,7 @@ app.use((req, res, next) => {
 });
 
 //Routes
+app.post('/webhooks/paystack', bookingController.handlePaystackWebhook);
 app.use('/', viewRoute);
 app.use('/api/v1/tours', tourRoute);
 app.use('/api/v1/users', userRoute);

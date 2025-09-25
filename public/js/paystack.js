@@ -15,7 +15,6 @@ export const bookTour = async (tourId) => {
     });
 
     console.log('session.....', session);
-    // window.location.href = session.data.paymentLink;
 
     const PAYSTACK_PUBLIC_KEY =
       'pk_test_e3eb58bd9657b232940c549f93546960b8a6df35';
@@ -23,14 +22,16 @@ export const bookTour = async (tourId) => {
     // 2) Open Paystack inline checkout
     const handler = PaystackPop.setup({
       key: PAYSTACK_PUBLIC_KEY,
-      access_code: session.data.access_code, // Use this to link to the server-initiazed transactionli
+      access_code: session.data.access_code,
+      ref: session.data.reference,
       email: session.data.email,
       amount: session.data.amount,
       callback: function (response) {
         console.log('paystack res', response);
         if (response.status === 'success') {
           showAlert('success', 'Payment successful!');
-          verifyPayment(response.reference, tourId, session.data.userId);
+          // window.location.reload();
+          window.location.href = '/';
         }
       },
       onClose: function () {
@@ -44,25 +45,3 @@ export const bookTour = async (tourId) => {
     showAlert('error', 'An error occured');
   }
 };
-
-// const verifyPayment = async (reference, tourId, userId) => {
-//   try {
-//     await axios({
-//       url: `/api/v1/bookings/verify-payment/${reference}`,
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       data: {
-//         tourId,
-//         userId,
-//       },
-//     });
-//     // Handle successful verification
-//     window.location.href = '/'; // Redirect to user's bookings
-//   } catch (err) {
-//     console.log(err);
-//     console.log(err.message);
-//     showAlert('error', 'Payment verification failed');
-//   }
-// };

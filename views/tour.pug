@@ -85,7 +85,6 @@ block content
             .cta__content
                 h2.heading-secondary What are you waiting for?
                 p.cta__text= `${tour.duration} days. 1 adventure. Infinite memories. Make it yours today!`
-                -console.log(user)
                 if user
                     if booked
                         a.btn.btn--green.span-all-rows#review-tour(class=`${reviewed ? 'disabled' : ''}` href=`/review/${tour.slug}`) Review Tour
